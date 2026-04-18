@@ -53,6 +53,7 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => AddTransaction(sl()));
   sl.registerLazySingleton(() => UpdateTransaction(sl()));
   sl.registerLazySingleton(() => DeleteTransaction(sl()));
+  sl.registerLazySingleton(() => SyncTransactions(sl()));
   sl.registerLazySingleton(() => LoginUseCase(sl()));
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
@@ -70,6 +71,7 @@ Future<void> initDependencies() async {
       addTransaction: sl(),
       updateTransaction: sl(),
       deleteTransaction: sl(),
+      syncTransactions: sl(),
     ),
   );
   sl.registerFactory(

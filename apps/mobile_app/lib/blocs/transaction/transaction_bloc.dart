@@ -107,6 +107,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   final AddTransaction addTransaction;
   final UpdateTransaction updateTransaction;
   final DeleteTransaction deleteTransaction;
+  final SyncTransactions syncTransactions;
 
   static const int _limit = 20;
 
@@ -115,6 +116,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     required this.addTransaction,
     required this.updateTransaction,
     required this.deleteTransaction,
+    required this.syncTransactions,
   }) : super(TransactionInitial()) {
     on<LoadTransactions>(_onLoad);
     on<AddTransactionEvent>(_onAdd);
@@ -207,7 +209,8 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     SyncTransactionsEvent event,
     Emitter<TransactionState> emit,
   ) async {
-    // Sync handled by repository — just reload
+    // Actually hit the backend to sync before reloading!
+    await syncTransactions(NoParams());
     add(LoadTransactions(reset: true));
   }
 }
