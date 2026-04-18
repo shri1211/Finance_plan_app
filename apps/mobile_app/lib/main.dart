@@ -7,6 +7,9 @@ import 'package:data/data.dart';
 
 import 'di/injection.dart';
 import 'blocs/auth/auth_bloc.dart';
+import 'blocs/transaction/transaction_bloc.dart';
+import 'blocs/analytics/analytics_bloc.dart';
+import 'managers/app_lifecycle_manager.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_shell.dart';
 import 'flavors.dart';
@@ -28,8 +31,8 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(TransactionModelAdapter());
   Hive.registerAdapter(UserModelAdapter());
-  await Hive.openBox('transactions');
-  await Hive.openBox('auth');
+  await Hive.openBox<TransactionModel>('transactions');
+  await Hive.openBox<UserModel>('auth');
   await initDependencies();
 
   runApp(const FinTrackApp());
@@ -40,9 +43,14 @@ class FinTrackApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<AuthBloc>()..add(CheckAuthEvent()),
-      child: MaterialApp(
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => sl<AuthBloc>()..add(CheckAuthEvent())),
+        BlocProvider(create: (_) => sl<TransactionBloc>()),
+        BlocProvider(create: (_) => sl<AnalyticsBloc>()),
+      ],
+      child: AppLifecycleManager(
+        child: MaterialApp(
         title: F.title,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.dark,
@@ -50,10 +58,7 @@ class FinTrackApp extends StatelessWidget {
         themeMode: ThemeMode.dark,
         routes: {
           '/home': (_) => const HomeShell(),
-          '/login': (_) => BlocProvider(
-                create: (_) => sl<AuthBloc>(),
-                child: const LoginScreen(),
-              ),
+          '/login': (_) => const LoginScreen(),
         },
         home: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
@@ -63,12 +68,10 @@ class FinTrackApp extends StatelessWidget {
             if (state is Authenticated) {
               return const HomeShell();
             }
-            return BlocProvider(
-              create: (_) => sl<AuthBloc>(),
-              child: const LoginScreen(),
-            );
+            return const LoginScreen();
           },
         ),
+      ),
       ),
     );
   }
@@ -95,11 +98,11 @@ class _SplashScreen extends StatelessWidget {
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(28),
-                boxShadow: [
+                boxShadow: const [
                   BoxShadow(
                     color: AppColors.primary,
                     blurRadius: 40,
-                    offset: const Offset(0, 12),
+                    offset: Offset(0, 12),
                   ),
                 ],
               ),

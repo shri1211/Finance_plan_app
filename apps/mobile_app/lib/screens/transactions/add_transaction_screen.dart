@@ -51,15 +51,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.existing != null;
-    return BlocListener<TransactionBloc, TransactionState>(
-      listener: (context, state) {
-        if (state is TransactionAdded || state is TransactionLoaded) {
-          if (state is TransactionLoaded) {
-            Navigator.of(context).pop();
-          }
-        }
-      },
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: AppColors.darkBackground,
         appBar: AppBar(
           backgroundColor: AppColors.darkSurface,
@@ -178,8 +170,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildTypeToggle() {

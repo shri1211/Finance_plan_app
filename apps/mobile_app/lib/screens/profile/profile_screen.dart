@@ -1,10 +1,86 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:ui_kit/ui_kit.dart';
 import '../../blocs/auth/auth_bloc.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final LocalAuthentication _auth = LocalAuthentication();
+  bool _isBiometricEnabled = false;
+  late Box _settingsBox;
+
+  @override
+  void initState() {
+    super.initState();
+    _initSettings();
+  }
+
+  Future<void> _initSettings() async {
+    _settingsBox = await Hive.openBox('settings');
+    setState(() {
+      _isBiometricEnabled = _settingsBox.get('biometric_enabled', defaultValue: false);
+    });
+  }
+
+  Future<void> _toggleBiometrics(bool value) async {
+    if (value) {
+      // Trying to enable
+      try {
+        final canCheckBiometrics = await _auth.canCheckBiometrics;
+        final isDeviceSupported = await _auth.isDeviceSupported();
+
+        if (!canCheckBiometrics || !isDeviceSupported) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Biometrics not available on this device')),
+            );
+          }
+          return;
+        }
+
+        final authenticated = await _auth.authenticate(
+          localizedReason: 'Please authenticate to enable biometric login',
+          options: const AuthenticationOptions(
+            stickyAuth: true,
+            biometricOnly: false,
+          ),
+        );
+
+        if (authenticated) {
+          setState(() {
+            _isBiometricEnabled = true;
+          });
+          await _settingsBox.put('biometric_enabled', true);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Biometric Authentication Enabled', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green),
+            );
+          }
+        }
+      } on PlatformException catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: ${e.message}')),
+          );
+        }
+      }
+    } else {
+      // Disable
+      setState(() {
+        _isBiometricEnabled = false;
+      });
+      await _settingsBox.put('biometric_enabled', false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,8 +149,8 @@ class ProfileScreen extends StatelessWidget {
                     title: 'Biometric Authentication',
                     subtitle: 'Secure your app',
                     hasSwitch: true,
-                    switchValue: false, // Placeholder
-                    onChanged: (val) {},
+                    switchValue: _isBiometricEnabled,
+                    onChanged: _toggleBiometrics,
                   ),
                   _buildSettingItem(
                     icon: Icons.notifications_active,

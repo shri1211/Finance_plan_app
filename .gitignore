@@ -1,0 +1,84 @@
+# ---------------------------------------------------
+# Backend / Node.js
+# ---------------------------------------------------
+node_modules/
+npm-debug.log
+yarn-error.log
+.pnp
+.pnp.js
+dist/
+coverage/
+
+# Environment variables configuration files (critical for security)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+*.pem
+
+# ---------------------------------------------------
+# Frontend / Flutter & Dart
+# ---------------------------------------------------
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+build/
+lib/generated_plugin_registrant.dart
+
+# ---------------------------------------------------
+# Android
+# ---------------------------------------------------
+**/android/app/build/
+**/android/build/
+**/android/.gradle/
+**/android/local.properties
+**/android/key.properties
+*.jks
+*.keystore
+
+# ---------------------------------------------------
+# iOS / macOS
+# ---------------------------------------------------
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/app.flx
+**/ios/Flutter/app.zip
+**/ios/Flutter/flutter_assets/
+**/ios/Flutter/flutter_export_environment.sh
+**/macOS/Flutter/Generated.xcconfig
+**/macOS/Flutter/ephemeral/
+**/macOS/Pods/
+xcuserdata/
+*.xcworkspace/xcuserdata
+*.xcuserdatad
+*.xcuserstate
+*.xcuserstate
+
+# ---------------------------------------------------
+# IDEs and Tools
+# ---------------------------------------------------
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

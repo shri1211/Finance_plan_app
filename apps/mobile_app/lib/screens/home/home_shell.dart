@@ -28,45 +28,35 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => sl<TransactionBloc>()..add(LoadTransactions(reset: true))),
-        BlocProvider(create: (_) => sl<AnalyticsBloc>()
-          ..add(LoadMonthlyReport(year: DateTime.now().year, month: DateTime.now().month))),
-      ],
-      child: Scaffold(
-        backgroundColor: AppColors.darkBackground,
-        body: IndexedStack(
-          index: _currentIndex,
-          children: _screens,
+    return Scaffold(
+      backgroundColor: AppColors.darkBackground,
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens,
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: AppColors.darkSurface,
+          border: const Border(top: BorderSide(color: AppColors.darkBorder)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
+          ],
         ),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            color: AppColors.darkSurface,
-            border: const Border(top: BorderSide(color: AppColors.darkBorder)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                blurRadius: 20,
-                offset: const Offset(0, -4),
-              ),
-            ],
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _navItem(0, Icons.home_rounded, Icons.home_outlined, 'Home'),
-                  _navItem(1, Icons.receipt_long_rounded,
-                      Icons.receipt_long_outlined, 'Transactions'),
-                  _navItem(2, Icons.bar_chart_rounded,
-                      Icons.bar_chart_outlined, 'Analytics'),
-                  _navItem(3, Icons.person_rounded, Icons.person_outline,
-                      'Profile'),
-                ],
-              ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _navItem(0, Icons.home_rounded, Icons.home_outlined, 'Home'),
+                _navItem(1, Icons.receipt_long_rounded, Icons.receipt_long_outlined, 'Transactions'),
+                _navItem(2, Icons.bar_chart_rounded, Icons.bar_chart_outlined, 'Analytics'),
+                _navItem(3, Icons.person_rounded, Icons.person_outline, 'Profile'),
+              ],
             ),
           ),
         ),
