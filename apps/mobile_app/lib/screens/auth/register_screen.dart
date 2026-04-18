@@ -61,7 +61,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   const SizedBox(height: 8),
                   const Text(
-                    'Create Account',
+                    'Create Account 🚀',
                     style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w700,
