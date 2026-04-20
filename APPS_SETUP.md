@@ -1,87 +1,91 @@
-# Mobile App Setup Guide
+# Local Setup & Run Flow
 
-## Connection Timeout Error - Quick Fix
+This guide is the standard local workflow for running the Finance Tracker backend and Flutter app together.
 
-If you see this error:
-```
-DioException [connection timeout]: The request connection took longer than 0:00:15.000000
-```
+## 1) Install dependencies
 
-### Step 1: Start the Backend Server
-
-**IMPORTANT:** The backend server must be running before the mobile app can connect.
+From project root:
 
 ```bash
-cd /Users/shreenidhi/StudioProjects/Finance_plan_app/backend
-npm install  # if not already installed
-npm run dev  # or npm start
+melos run get
 ```
 
-Verify backend is running:
-```bash
-curl http://localhost:3000/api/health
-```
-
-### Step 2: Configure the Correct IP Address
-
-The `ApiClient` now automatically selects the correct IP based on platform:
-
-| Platform | URL Used |
-|----------|----------|
-| Android Emulator | `http://10.0.2.2:3000/api` |
-| iOS Simulator | `http://localhost:3000/api` |
-| Physical Device | Use your computer's actual IP (e.g., `http://192.168.1.x:3000/api`) |
-
-### Step 3: For Physical Device Testing
-
-If testing on a physical device, update the base URL:
-
-**Option A: Pass URL to ApiClient constructor**
-```dart
-final apiClient = ApiClient(baseUrl: 'http://YOUR_MACHINE_IP:3000/api');
-```
-
-**Option B: Update at runtime**
-```dart
-apiClient.setBaseUrl('http://YOUR_MACHINE_IP:3000/api');
-```
-
-To find your machine's IP:
-- **macOS/Linux:** `ifconfig` or `ip addr`
-- **Windows:** `ipconfig`
-
-### Step 4: Common Issues
-
-1. **Firewall blocking port 3000**
-   - macOS: `sudo ufw allow 3000` or System Preferences > Security > Firewall
-   - Windows: Windows Defender Firewall settings
-
-2. **Backend not running**
-   - Check: `curl http://localhost:3000/api/health`
-   - Start: `cd backend && npm run dev`
-
-3. **Wrong IP for Android Emulator**
-   - Use `10.0.2.2` NOT `localhost`
-
-4. **CORS errors**
-   - Backend should have CORS enabled (check `backend/src/index.js`)
-
-## Updated ApiClient Features
-
-The `ApiClient` has been enhanced with:
-
-- ✅ **Automatic platform detection** for default base URL
-- ✅ **Extended timeout** (30 seconds instead of 15)
-- ✅ **Better error messages** with troubleshooting hints
-- ✅ **Runtime URL switching** via `setBaseUrl()`
-- ✅ **Three timeout types**: connect, receive, and send
-
-## Testing Connection
+Backend dependencies:
 
 ```bash
-# Test from terminal
-curl http://localhost:3000/api/auth/login \
-  -X POST \
+npm --prefix backend install
+```
+
+## 2) Start backend API
+
+```bash
+npm --prefix backend run dev
+```
+
+The backend listens on `http://localhost:3000`.
+
+## 3) Verify backend health
+
+Use the health endpoint exposed by the server:
+
+```bash
+curl http://localhost:3000/health
+```
+
+Expected result: JSON with `status: "ok"`.
+
+## 4) Run Flutter app
+
+From project root:
+
+```bash
+flutter run --flavor dev -t apps/mobile_app/lib/main_dev.dart
+```
+
+You can also use:
+
+```bash
+flutter run --flavor staging -t apps/mobile_app/lib/main_staging.dart
+flutter run --flavor prod -t apps/mobile_app/lib/main_prod.dart
+```
+
+## 5) API base URL behavior
+
+Current app setup uses `http://localhost:3000/api` by default.
+
+If you test on Android emulator and cannot reach localhost, use one of these:
+
+1. Port reverse:
+
+```bash
+adb reverse tcp:3000 tcp:3000
+```
+
+2. Or update app API base URL to:
+`http://10.0.2.2:3000/api`
+
+For physical devices, use your machine IP:
+`http://<YOUR_MACHINE_IP>:3000/api`
+
+## 6) Quick connectivity checks
+
+Health:
+
+```bash
+curl http://localhost:3000/health
+```
+
+Auth route reachability:
+
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@test.com","password":"password"}'
 ```
+
+## Common timeout troubleshooting
+
+- Confirm backend process is running (`npm --prefix backend run dev`)
+- Verify health endpoint (`/health`, not `/api/health`)
+- Ensure emulator/device can route to backend host
+- Check firewall/port access for `3000`
