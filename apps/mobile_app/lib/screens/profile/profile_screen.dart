@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:services/services.dart';
 import 'package:ui_kit/ui_kit.dart';
 import '../../blocs/auth/auth_bloc.dart';
 
@@ -13,22 +14,48 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserver {
   final LocalAuthentication _auth = LocalAuthentication();
   bool _isBiometricEnabled = false;
+  bool _isNotificationCaptureEnabled = false;
+  bool _isSmsAutoCaptureEnabled = false;
   late Box _settingsBox;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initSettings();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshPermissions();
+    }
   }
 
   Future<void> _initSettings() async {
     _settingsBox = await Hive.openBox('settings');
-    setState(() {
-      _isBiometricEnabled = _settingsBox.get('biometric_enabled', defaultValue: false);
-    });
+    await _refreshPermissions();
+  }
+
+  Future<void> _refreshPermissions() async {
+    final notifGranted = await BackgroundParserService.hasNotificationPermission();
+    final smsGranted = await BackgroundParserService.hasSmsPermission();
+    if (mounted) {
+      setState(() {
+        _isBiometricEnabled = _settingsBox.get('biometric_enabled', defaultValue: false);
+        _isNotificationCaptureEnabled = notifGranted;
+        _isSmsAutoCaptureEnabled = smsGranted;
+      });
+    }
   }
 
   Future<void> _toggleBiometrics(bool value) async {
@@ -147,17 +174,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildSettingItem(
                     icon: Icons.security,
                     title: 'Biometric Authentication',
-                    subtitle: 'Secure your app',
+                    subtitle: 'Secure your app with fingerprint/face',
                     hasSwitch: true,
                     switchValue: _isBiometricEnabled,
                     onChanged: _toggleBiometrics,
                   ),
                   _buildSettingItem(
-                    icon: Icons.notifications_active,
-                    title: 'Notifications',
-                    subtitle: 'Manage alerts',
-                    onTap: () {},
+                    icon: Icons.sms_outlined,
+                    title: 'SMS Auto-Capture',
+                    subtitle: 'Read bank SMS to log transactions',
+                    hasSwitch: true,
+                    switchValue: _isSmsAutoCaptureEnabled,
+                    onChanged: (val) async {
+                      if (val) {
+                        final granted = await BackgroundParserService.hasSmsPermission();
+                        if (!granted && mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('SMS permission denied. Please grant it in app settings.')),
+                          );
+                        } else if (mounted) {
+                          setState(() => _isSmsAutoCaptureEnabled = true);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('SMS Auto-Capture active!'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      } else {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('To disable SMS capture, please revoke SMS permission in Android App Info settings.')),
+                          );
+                        }
+                      }
+                    },
                   ),
+                  _buildSettingItem(
+                    icon: Icons.notifications_outlined,
+                    title: 'UPI Notification Capture',
+                    subtitle: _isNotificationCaptureEnabled
+                        ? 'Active — capturing GPay, PhonePe, Paytm'
+                        : 'Tap to grant Notification Access',
+                    hasSwitch: true,
+                    switchValue: _isNotificationCaptureEnabled,
+                    onChanged: (val) async {
+                      if (val) {
+                        if (!_isNotificationCaptureEnabled) {
+                          // Opens Android "Notification Access" settings page
+                          await BackgroundParserService.requestNotificationPermission();
+                        }
+                      } else {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('To disable notification capture, please revoke Notification Access in Android settings.')),
+                          );
+                        }
+                      }
+                    },
+                  ),
+
                   const SizedBox(height: 40),
                   GradientButton(
                     label: 'Logout',

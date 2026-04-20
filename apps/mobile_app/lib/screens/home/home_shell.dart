@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:services/services.dart';
 import 'package:ui_kit/ui_kit.dart';
 import '../../blocs/transaction/transaction_bloc.dart';
 import '../../blocs/analytics/analytics_bloc.dart';
@@ -18,6 +19,18 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Request permissions after login when the home shell is first loaded.
+    // Adding a small delay so it doesn't pop up immediately before the UI settles.
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) {
+        BackgroundParserService.ensureListening(forceRequest: true);
+      }
+    });
+  }
 
   final _screens = const [
     DashboardScreen(),

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:ui_kit/ui_kit.dart';
 import 'package:data/data.dart';
+import 'package:services/services.dart';
 
 import 'di/injection.dart';
 import 'blocs/auth/auth_bloc.dart';
@@ -35,6 +36,9 @@ void main() async {
   await Hive.openBox<UserModel>('auth');
   await initDependencies();
 
+  // Start background SMS + Notification auto-capture
+  await BackgroundParserService.initialize();
+
   runApp(const FinTrackApp());
 }
 
@@ -49,13 +53,15 @@ class FinTrackApp extends StatelessWidget {
         BlocProvider(create: (_) => sl<TransactionBloc>()),
         BlocProvider(create: (_) => sl<AnalyticsBloc>()),
       ],
-      child: AppLifecycleManager(
-        child: MaterialApp(
+      child: MaterialApp(
         title: F.title,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.dark,
         darkTheme: AppTheme.dark,
         themeMode: ThemeMode.dark,
+        builder: (context, child) {
+          return AppLifecycleManager(child: child!);
+        },
         routes: {
           '/home': (_) => const HomeShell(),
           '/login': (_) => const LoginScreen(),
@@ -71,7 +77,6 @@ class FinTrackApp extends StatelessWidget {
             return const LoginScreen();
           },
         ),
-      ),
       ),
     );
   }
