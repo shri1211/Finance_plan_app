@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema(
   {
+    _id: { type: String }, // Accept custom UUID from frontend
     userId: { type: String, required: true, index: true },
     amount: { type: Number, required: true, min: 0 },
     type: { type: String, enum: ['credit', 'debit'], required: true },
