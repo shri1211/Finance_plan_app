@@ -7,6 +7,7 @@ import 'package:local_auth/local_auth.dart';
 
 import '../blocs/transaction/transaction_bloc.dart';
 import '../blocs/auth/auth_bloc.dart';
+import 'auto_capture_processor.dart';
 
 class AppLifecycleManager extends StatefulWidget {
   final Widget child;
@@ -122,6 +123,7 @@ class _AppLifecycleManagerState extends State<AppLifecycleManager> with WidgetsB
     _startPolling();
 
     if (mounted) {
+      await AutoCaptureProcessor.processStagedTransactions(context);
       context.read<TransactionBloc>().add(LoadTransactions(reset: true));
     }
 
