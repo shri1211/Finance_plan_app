@@ -92,11 +92,32 @@ class TransactionRepositoryImpl implements TransactionRepository {
   @override
   Future<Either<Failure, bool>> syncTransactions() async {
     try {
+      // 1. Push unsynced local data to the server
       final unsynced = await local.getUnsyncedTransactions();
-      if (unsynced.isEmpty) return const Right(true);
-      final synced = await remote.syncTransactions(unsynced);
-      await local.markAsSynced(
-          synced.map<String>((m) => (m as TransactionModel).id).toList());
+      if (unsynced.isNotEmpty) {
+        final synced = await remote.syncTransactions(unsynced);
+        await local.markAsSynced(
+            synced.map<String>((m) => (m as TransactionModel).id).toList());
+      }
+
+      // 2. Pull all remote data to local DB (restores data on new install)
+      final remoteData = await remote.getTransactions(limit: 1000);
+      for (final model in remoteData) {
+        // Ensure remote data is marked as synced locally
+        final localModel = TransactionModel(
+          id: model.id,
+          amount: model.amount,
+          type: model.type,
+          category: model.category,
+          title: model.title,
+          description: model.description,
+          merchant: model.merchant,
+          date: model.date,
+          isSynced: true, // Marked as synced because it came from backend
+        );
+        await local.saveTransaction(localModel);
+      }
+
       return const Right(true);
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));

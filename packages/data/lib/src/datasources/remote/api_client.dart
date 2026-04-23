@@ -10,7 +10,8 @@ class ApiClient {
   /// - Physical device: Use your machine's actual IP address
   static String get defaultBaseUrl {
     if (Platform.isAndroid) {
-      return 'http://10.0.2.2:3000/api';
+      // 10.0.2.2 for emulator, localhost for physical device (requires adb reverse tcp:3000 tcp:3000)
+      return 'http://localhost:3000/api';
     } else if (Platform.isIOS) {
       return 'http://localhost:3000/api';
     }

@@ -4,9 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:ui_kit/ui_kit.dart';
 import 'package:data/data.dart';
+import 'package:services/services.dart';
 
 import 'di/injection.dart';
 import 'blocs/auth/auth_bloc.dart';
+import 'blocs/transaction/transaction_bloc.dart';
+import 'blocs/analytics/analytics_bloc.dart';
+import 'managers/app_lifecycle_manager.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_shell.dart';
 import 'flavors.dart';
@@ -28,9 +32,12 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(TransactionModelAdapter());
   Hive.registerAdapter(UserModelAdapter());
-  await Hive.openBox('transactions');
-  await Hive.openBox('auth');
+  await Hive.openBox<TransactionModel>('transactions');
+  await Hive.openBox<UserModel>('auth');
   await initDependencies();
+
+  // Start background SMS + Notification auto-capture
+  await BackgroundParserService.initialize();
 
   runApp(const FinTrackApp());
 }
@@ -40,20 +47,24 @@ class FinTrackApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<AuthBloc>()..add(CheckAuthEvent()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => sl<AuthBloc>()..add(CheckAuthEvent())),
+        BlocProvider(create: (_) => sl<TransactionBloc>()),
+        BlocProvider(create: (_) => sl<AnalyticsBloc>()),
+      ],
       child: MaterialApp(
         title: F.title,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.dark,
         darkTheme: AppTheme.dark,
         themeMode: ThemeMode.dark,
+        builder: (context, child) {
+          return AppLifecycleManager(child: child!);
+        },
         routes: {
           '/home': (_) => const HomeShell(),
-          '/login': (_) => BlocProvider(
-                create: (_) => sl<AuthBloc>(),
-                child: const LoginScreen(),
-              ),
+          '/login': (_) => const LoginScreen(),
         },
         home: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
@@ -63,10 +74,7 @@ class FinTrackApp extends StatelessWidget {
             if (state is Authenticated) {
               return const HomeShell();
             }
-            return BlocProvider(
-              create: (_) => sl<AuthBloc>(),
-              child: const LoginScreen(),
-            );
+            return const LoginScreen();
           },
         ),
       ),

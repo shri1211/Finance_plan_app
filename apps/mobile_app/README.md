@@ -1,17 +1,38 @@
 # mobile_app
 
-A new Flutter project.
+Flutter client for the Finance Tracker app.
 
-## Getting Started
+## Prerequisites
 
-This project is a starting point for a Flutter application.
+- Flutter SDK
+- Running backend API on `http://localhost:3000`
 
-A few resources to get you started if this is your first Flutter project:
+## Run commands
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+From repository root:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter run --flavor dev -t apps/mobile_app/lib/main_dev.dart
+```
+
+Other flavors:
+
+```bash
+flutter run --flavor staging -t apps/mobile_app/lib/main_staging.dart
+flutter run --flavor prod -t apps/mobile_app/lib/main_prod.dart
+```
+
+## Backend connectivity
+
+The app currently uses `http://localhost:3000/api` by default.
+
+If Android emulator cannot reach localhost:
+
+```bash
+adb reverse tcp:3000 tcp:3000
+```
+
+Or set API base URL to `http://10.0.2.2:3000/api`.
+
+For physical devices, use your machine IP:
+`http://<YOUR_MACHINE_IP>:3000/api`

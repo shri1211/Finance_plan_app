@@ -1,3 +1,4 @@
+import 'package:core/core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:domain/domain.dart';
@@ -210,7 +211,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     Emitter<TransactionState> emit,
   ) async {
     // Actually hit the backend to sync before reloading!
-    await syncTransactions(NoParams());
+    await syncTransactions(const NoParams());
     add(LoadTransactions(reset: true));
   }
 }

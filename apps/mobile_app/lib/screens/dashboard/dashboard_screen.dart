@@ -24,7 +24,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _loadData() {
     final now = DateTime.now();
+    // 1. Force a background sync to pull existing data from Node.js DB
+    context.read<TransactionBloc>().add(SyncTransactionsEvent());
+    // 2. Load whatever is currently in the local SQLite/Hive DB
     context.read<TransactionBloc>().add(LoadTransactions(reset: true));
+    
     context.read<AnalyticsBloc>().add(
           LoadMonthlyReport(year: now.year, month: now.month),
         );
@@ -71,6 +75,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
         onPressed: () => _openAddTransaction(context),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_rounded, color: Colors.white),

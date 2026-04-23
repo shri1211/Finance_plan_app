@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:services/services.dart';
 import 'package:ui_kit/ui_kit.dart';
 import '../../blocs/transaction/transaction_bloc.dart';
 import '../../blocs/analytics/analytics_bloc.dart';
@@ -19,6 +20,18 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _currentIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    // Request permissions after login when the home shell is first loaded.
+    // Adding a small delay so it doesn't pop up immediately before the UI settles.
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) {
+        BackgroundParserService.ensureListening(forceRequest: true);
+      }
+    });
+  }
+
   final _screens = const [
     DashboardScreen(),
     TransactionListScreen(),
@@ -28,45 +41,35 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => sl<TransactionBloc>()..add(LoadTransactions(reset: true))),
-        BlocProvider(create: (_) => sl<AnalyticsBloc>()
-          ..add(LoadMonthlyReport(year: DateTime.now().year, month: DateTime.now().month))),
-      ],
-      child: Scaffold(
-        backgroundColor: AppColors.darkBackground,
-        body: IndexedStack(
-          index: _currentIndex,
-          children: _screens,
+    return Scaffold(
+      backgroundColor: AppColors.darkBackground,
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens,
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: AppColors.darkSurface,
+          border: const Border(top: BorderSide(color: AppColors.darkBorder)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
+          ],
         ),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            color: AppColors.darkSurface,
-            border: const Border(top: BorderSide(color: AppColors.darkBorder)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                blurRadius: 20,
-                offset: const Offset(0, -4),
-              ),
-            ],
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _navItem(0, Icons.home_rounded, Icons.home_outlined, 'Home'),
-                  _navItem(1, Icons.receipt_long_rounded,
-                      Icons.receipt_long_outlined, 'Transactions'),
-                  _navItem(2, Icons.bar_chart_rounded,
-                      Icons.bar_chart_outlined, 'Analytics'),
-                  _navItem(3, Icons.person_rounded, Icons.person_outline,
-                      'Profile'),
-                ],
-              ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _navItem(0, Icons.home_rounded, Icons.home_outlined, 'Home'),
+                _navItem(1, Icons.receipt_long_rounded, Icons.receipt_long_outlined, 'Transactions'),
+                _navItem(2, Icons.bar_chart_rounded, Icons.bar_chart_outlined, 'Analytics'),
+                _navItem(3, Icons.person_rounded, Icons.person_outline, 'Profile'),
+              ],
             ),
           ),
         ),
