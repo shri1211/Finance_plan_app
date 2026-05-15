@@ -6,7 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:services/services.dart';
 import 'package:ui_kit/ui_kit.dart';
 import '../../blocs/auth/auth_bloc.dart';
-
+import 'privacy_policy_screen.dart';
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -231,6 +231,20 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
                           );
                         }
                       }
+                    },
+                  ),
+
+                  _buildSettingItem(
+                    icon: Icons.privacy_tip_outlined,
+                    title: 'Privacy Policy',
+                    subtitle: 'Read how we handle your data',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PrivacyPolicyScreen(),
+                        ),
+                      );
                     },
                   ),
 
