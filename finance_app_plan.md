@@ -367,15 +367,6 @@ Setup testing:
 * Keep UI **clean & premium**
 * Scale backend gradually
 
----
-
-# 🎯 Usage
-
-You can copy any **AI Command** above and use it with:
-
-* ChatGPT
-* GitHub Copilot
-* Cursor AI
 
 ---
 
